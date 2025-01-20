@@ -12,3 +12,5 @@ torch==2.4.0
 tqdm==4.64.1
 gradio
 plotly
+transformers==4.40.1
+chronos

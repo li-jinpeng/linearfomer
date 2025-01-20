@@ -1,38 +1,24 @@
-import os
-
 datas = ['ETTh1', 'ETTh2', 'ETTm1', 'ETTm2', 'ELC', 'Exchange', 'Weather2023', 'Traffic']
-gpu_list = [0,2,3,4,5,6,7]
-input_len = 96*7
-# pred_lens = [96, 192, 24, 48]
-pred_lens = [288, 384, 480, 576]
-# ks = [100, 200, 500]
-ks = [100]
-ls = [0.0125]
-# ls = [0.0025]
-# datas = ['ELC', 'Traffic']
-stds = [0.03]
-# ls = [0.0125, 0.01, 0.015, 0.0175, 0.02, 0.0075]
-# stds = [0.02, 0.03, 0.05]
-
-# data = 'ETTh1'
-# pred_len = 96
-gpu_index = 0
-# index = 0
-# 0-5
-print(len(datas) * len(pred_lens) * len(ks) * len(stds) * len(ls))
-
-for data in datas:
-    for pred_len in pred_lens:
+models = ['timer-UTSD', 'timer-LOTSA', 'chronos-bolt-tiny', 'chronos-bolt-base', 'timer-base-84M']
+pred_len = [24, 48, 96, 192, 336, 720]
+stds = [0, 0.01, 0.02, 0.05, 0.08]
+ls = [0, 0.01, 0.02, 0.05, 0.08]
+import os
+import sys
+data_index = int(sys.argv[1])
+gpu = 4 + data_index // 4
+data = datas[data_index]
+for model in models:
+    for p_l in pred_len:
         for std in stds:
-            for k in ks:
-                for l in ls:
-                    script = f'nohup python -u run.py \
+            for l in ls:
+                if std == 0 and l == 0:
+                    continue
+                script = f'python -u run_v2.py \
                         --data {data} \
-                        --pred_len {pred_len} \
-                        --gpu {gpu_list[gpu_index]} \
-                        --k {k} \
+                        --model {model} \
+                        --pred_len {p_l} \
+                        --gpu {gpu} \
                         --std {std} \
-                        --l {l} > logs/{data}_{pred_len}.log 2>&1 &'
-                    os.system(script)
-                    gpu_index += 1
-                    gpu_index %= len(gpu_list)
+                        --l {l}'
+                os.system(script)
